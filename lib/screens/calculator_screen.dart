@@ -32,6 +32,28 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   ];
 
   String _display = '';
+  double? _first;
+  String? _op;
+
+  String _evaluate(double a, double b, String op) {
+    double result;
+    if (op == '+') {
+      result = a + b;
+    } else if (op == '-') {
+      result = a - b;
+    } else if (op == '*') {
+      result = a * b;
+    } else if (op == '/') {
+      if (b == 0) return 'Error';
+      result = a / b;
+    } else {
+      if (b == 0) return 'Error';
+      result = a % b;
+    }
+    return result == result.truncateToDouble()
+        ? result.toInt().toString()
+        : '$result';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +96,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     ElevatedButton(
                       onPressed: () {
                         if (label == 'C') {
-                          setState(() => _display = '');
+                          setState(() {
+                            _display = '';
+                            _first = null;
+                            _op = null;
+                          });
                         } else if (label == '<-') {
                           if (_display.isNotEmpty) {
                             setState(() {
@@ -85,9 +111,24 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             });
                           }
                         } else if (label == '=') {
-                          // your logic goes here
+                          if (_first != null &&
+                              _op != null &&
+                              _display.isNotEmpty) {
+                            final b = double.tryParse(_display) ?? 0;
+                            setState(() {
+                              _display = _evaluate(_first!, b, _op!);
+                              _first = null;
+                              _op = null;
+                            });
+                          }
                         } else if ('+-*/%'.contains(label)) {
-                          // your logic goes here
+                          if (_display.isNotEmpty) {
+                            setState(() {
+                              _first = double.tryParse(_display);
+                              _op = label;
+                              _display = '';
+                            });
+                          }
                         } else {
                           setState(() => _display += label);
                         }
