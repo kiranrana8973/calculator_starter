@@ -1,14 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git checkout *)",
-      "Bash(git add *)",
-      "Bash(git rm *)",
-      "Bash(git restore *)",
-      "Bash(git -c user.name=\"Kiran Rana\" -c user.email=\"kiran.claude8973@gmail.com\" commit -m \"Initial commit\")",
-      "Bash(git branch *)",
-      "Bash(git push *)",
-      "Bash(flutter analyze *)"
+      "Bash(git add *)"
     ]
   }
 }

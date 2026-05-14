@@ -109,7 +109,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         if (_expression.isEmpty) return;
         final last = _expression[_expression.length - 1];
         if ('+-*/%'.contains(last)) {
-          _expression = _expression.substring(0, _expression.length - 1) + label;
+          _expression =
+              _expression.substring(0, _expression.length - 1) + label;
         } else {
           _expression += label;
         }
@@ -137,6 +138,103 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return Colors.black87;
   }
 
+  Widget _displayCard() {
+    return Container(
+      width: double.infinity,
+      constraints: const BoxConstraints(minHeight: 110),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      alignment: Alignment.bottomRight,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_result.isNotEmpty)
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Text(
+                _pretty(_expression),
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerRight,
+            child: Text(
+              _result.isNotEmpty
+                  ? _result
+                  : (_expression.isEmpty ? '0' : _pretty(_expression)),
+              style: const TextStyle(
+                fontSize: 56,
+                color: Colors.black,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buttonGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 12.0;
+        const cols = 4;
+        const rows = 5;
+        final cellW = (constraints.maxWidth - spacing * (cols - 1)) / cols;
+        final cellH = (constraints.maxHeight - spacing * (rows - 1)) / rows;
+        return GridView.count(
+          crossAxisCount: cols,
+          mainAxisSpacing: spacing,
+          crossAxisSpacing: spacing,
+          childAspectRatio: cellW / cellH,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            for (final label in _buttons)
+              ElevatedButton(
+                onPressed: () => _onTap(label),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _bgFor(label),
+                  foregroundColor: _fgFor(label),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: FittedBox(
+                  child: Text(
+                    _label(label),
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,120 +248,37 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         leading: const BackButton(color: Colors.white),
       ),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(minHeight: 110),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 24,
-                    ),
-                    alignment: Alignment.bottomRight,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade200),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (_result.isNotEmpty)
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              _pretty(_expression),
-                              style: TextStyle(
-                                fontSize: 22,
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        const SizedBox(height: 4),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            _result.isNotEmpty
-                                ? _result
-                                : (_expression.isEmpty
-                                    ? '0'
-                                    : _pretty(_expression)),
-                            style: const TextStyle(
-                              fontSize: 56,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w300,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            if (orientation == Orientation.landscape) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(flex: 4, child: _displayCard()),
+                    const SizedBox(width: 16),
+                    Expanded(flex: 6, child: _buttonGrid()),
+                  ],
+                ),
+              );
+            }
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _displayCard(),
+                      const SizedBox(height: 16),
+                      Expanded(child: _buttonGrid()),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        const spacing = 12.0;
-                        const cols = 4;
-                        const rows = 5;
-                        final cellW =
-                            (constraints.maxWidth - spacing * (cols - 1)) /
-                            cols;
-                        final cellH =
-                            (constraints.maxHeight - spacing * (rows - 1)) /
-                            rows;
-                        return GridView.count(
-                          crossAxisCount: cols,
-                          mainAxisSpacing: spacing,
-                          crossAxisSpacing: spacing,
-                          childAspectRatio: cellW / cellH,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            for (final label in _buttons)
-                              ElevatedButton(
-                                onPressed: () => _onTap(label),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _bgFor(label),
-                                  foregroundColor: _fgFor(label),
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                ),
-                                child: FittedBox(
-                                  child: Text(
-                                    _label(label),
-                                    style: const TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
